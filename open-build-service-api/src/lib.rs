@@ -802,6 +802,21 @@ impl<'a> PackageBuilder<'a> {
         Ok(())
     }
 
+    pub async fn abort(&self) -> Result<()> {
+        let mut u: Url = self.client.base.clone();
+        u.path_segments_mut()
+            .map_err(|_| Error::InvalidUrl)?
+            .push("build")
+            .push(&self.project);
+
+        u.query_pairs_mut().append_pair("cmd", "abortbuild");
+        u.query_pairs_mut().append_pair("package", &self.package);
+
+        Client::send_with_error(self.client.authenticated_request(Method::POST, u)).await?;
+
+        Ok(())
+    }
+
     pub fn log(&self, repository: &str, arch: &str) -> PackageLog<'a> {
         PackageLog {
             client: self.client,
